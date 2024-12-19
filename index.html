@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: center;
+        }
+        .input-cell {
+            width: 50px;
+        }
+        .total {
+            font-weight: bold;
+            background-color: #f0f0f0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .button-container {
+            margin: 20px 0;
+            text-align: center;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #result {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            white-space: pre-line;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>棒球比賽計分表</h2>
+        <table id="scoreTable">
+            <tr>
+                <th>局數</th>
+                <th>1</th>
+                <th>2</th>
+                <th>3</th>
+                <th>4</th>
+                <th>5</th>
+                <th>6</th>
+                <th>7</th>
+                <th>8</th>
+                <th>9</th>
+                <th>總計</th>
+            </tr>
+            <tr>
+                <td>得分</td>
+                <td><input type="number" min="0" class="input-cell score-input" onchange="calculateTotal()"></td>
+                <td><input type="number" min="0" class="input-cell score-input" onchange="calculateTotal()"></td>
+                <td><input type="number" min="0" class="input-cell score-input" onchange="calculateTotal()"></td>
+                <td><input type="number" min="0" class="input-cell score-input" onchange="calculateTotal()"></td>
+                <td><input type="number" min="0" class="input-cell score-input" onchange="calculateTotal()"></td>
+                <td><input type="number" min="0" class="input-cell score-input" onchange="calculateTotal()"></td>
+                <td><input type="number" min="0" class="input-cell score-input" onchange="calculateTotal()"></td>
+                <td><input type="number" min="0" class="input-cell score-input" onchange="calculateTotal()"></td>
+                <td><input type="number" min="0" class="input-cell score-input" onchange="calculateTotal()"></td>
+                <td id="scoreTotal" class="total">0</td>
+            </tr>
+            <tr>
+                <td>殘壘數</td>
+                <td><input type="number" min="0" max="3" class="input-cell lob-input" onchange="calculateLOBTotal()"></td>
+                <td><input type="number" min="0" max="3" class="input-cell lob-input" onchange="calculateLOBTotal()"></td>
+                <td><input type="number" min="0" max="3" class="input-cell lob-input" onchange="calculateLOBTotal()"></td>
+                <td><input type="number" min="0" max="3" class="input-cell lob-input" onchange="calculateLOBTotal()"></td>
+                <td><input type="number" min="0" max="3" class="input-cell lob-input" onchange="calculateLOBTotal()"></td>
+                <td><input type="number" min="0" max="3" class="input-cell lob-input" onchange="calculateLOBTotal()"></td>
+                <td><input type="number" min="0" max="3" class="input-cell lob-input" onchange="calculateLOBTotal()"></td>
+                <td><input type="number" min="0" max="3" class="input-cell lob-input" onchange="calculateLOBTotal()"></td>
+                <td><input type="number" min="0" max="3" class="input-cell lob-input" onchange="calculateLOBTotal()"></td>
+                <td id="lobTotal" class="total">0</td>
+            </tr>
+        </table>
+
+        <div class="button-container">
+            <button onclick="generateResult()">產生比賽結果</button>
+            <button onclick="exportToCSV()">匯出CSV</button>
+        </div>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        function calculateTotal() {
+            const scores = document.getElementsByClassName('score-input');
+            let total = 0;
+            for (let score of scores) {
+                total += Number(score.value) || 0;
+            }
+            document.getElementById('scoreTotal').textContent = total;
+        }
+
+        function calculateLOBTotal() {
+            const lobs = document.getElementsByClassName('lob-input');
+            let total = 0;
+            for (let lob of lobs) {
+                total += Number(lob.value) || 0;
+            }
+            document.getElementById('lobTotal').textContent = total;
+        }
+
+        function generateResult() {
+            const scores = document.getElementsByClassName('score-input');
+            const lobs = document.getElementsByClassName('lob-input');
+            let resultText = "比賽結果統計：\n\n";
+            resultText += "各局得分：\n";
+            
+            let scoreArray = [];
+            let lobArray = [];
+            
+            for (let i = 0; i < scores.length; i++) {
+                const score = Number(scores[i].value) || 0;
+                const lob = Number(lobs[i].value) || 0;
+                scoreArray.push(score);
+                lobArray.push(lob);
+                resultText += `第 ${i + 1} 局：${score} 分，殘壘 ${lob}\n`;
+            }
+
+            const totalScore = scoreArray.reduce((a, b) => a + b, 0);
+            const totalLOB = lobArray.reduce((a, b) => a + b, 0);
+            
+            resultText += "\n總計：\n";
+            resultText += `總得分：${totalScore} 分\n`;
+            resultText += `總殘壘：${totalLOB}\n`;
+
+            const maxScore = Math.max(...scoreArray);
+            const maxScoreInnings = scoreArray
+                .map((score, index) => score === maxScore ? index + 1 : null)
+                .filter(inning => inning !== null);
+            
+            if (maxScore > 0) {
+                resultText += `\n得分最多的局數：第 ${maxScoreInnings.join(', ')} 局 (${maxScore} 分)`;
+            }
+
+            document.getElementById('result').textContent = resultText;
+        }
+
+        function exportToCSV() {
+            const scores = document.getElementsByClassName('score-input');
+            const lobs = document.getElementsByClassName('lob-input');
+            
+            // 準備CSV數據
+            let csvContent = "局數,得分,殘壘\n";
+            
+            // 添加每局數據
+            for (let i = 0; i < scores.length; i++) {
+                const score = Number(scores[i].value) || 0;
+                const lob = Number(lobs[i].value) || 0;
+                csvContent += `${i + 1},${score},${lob}\n`;
+            }
+            
+            // 添加總計
+            const totalScore = Array.from(scores).reduce((sum, input) => sum + (Number(input.value) || 0), 0);
+            const totalLOB = Array.from(lobs).reduce((sum, input) => sum + (Number(input.value) || 0), 0);
+            csvContent += `總計,${totalScore},${totalLOB}\n`;
+
+            // 創建Blob對象
+            const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+            
+            // 創建下載連結
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            
+            // 設置檔案名稱和下載連結
+            const date = new Date().toLocaleDateString().replace(/\//g, '');
+            link.setAttribute("href", url);
+            link.setAttribute("download", `棒球比賽記錄_${date}.csv`);
+            link.style.visibility = 'hidden';
+            
+            // 觸發下載
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
